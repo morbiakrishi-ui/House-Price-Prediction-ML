@@ -207,13 +207,20 @@ if page == "Overview":
         st.markdown("</div>",unsafe_allow_html=True)
     with c2:
         st.markdown("<div class='panel'><div class='panel-title'>Where the homes are located</div><div class='panel-sub'>Geographic distribution of sampled King County properties</div>",unsafe_allow_html=True)
-        map_sample = df[["lat","long","price"]].dropna().sample(min(1500,len(df)),random_state=7)
-        fig4 = px.scatter_mapbox(map_sample,lat="lat",lon="long",color="price",size_max=6,zoom=8,
-                                 mapbox_style="carto-positron",
-                                 color_continuous_scale=["#dcebe3","#28715d","#c29a62"],opacity=.65)
-        fig4.update_layout(height=300,margin=dict(l=0,r=0,t=0,b=0),paper_bgcolor="white",
+        # Use a standard Plotly scatter chart instead of scatter_mapbox.
+        # This avoids Plotly-version / Mapbox compatibility errors on Streamlit Cloud.
+        map_sample = df[["lat","long","price"]].dropna()
+        map_sample = map_sample.sample(min(1500,len(map_sample)),random_state=7) if len(map_sample) else map_sample
+        fig4 = px.scatter(map_sample,x="long",y="lat",color="price",
+                          color_continuous_scale=["#dcebe3","#28715d","#c29a62"],opacity=.65,
+                          labels={"long":"Longitude","lat":"Latitude","price":"Sale price (USD)"},
+                          hover_data={"price":":$,.0f","lat":":.4f","long":":.4f"})
+        fig4.update_layout(height=300,margin=dict(l=8,r=8,t=8,b=8),paper_bgcolor="white",plot_bgcolor="white",
                            coloraxis_colorbar=dict(title="Price",tickprefix="$"),
-                           font=dict(family="DM Sans",color="#52675e",size=10))
+                           font=dict(family="DM Sans",color="#52675e",size=10),
+                           xaxis_title="Longitude",yaxis_title="Latitude")
+        fig4.update_xaxes(gridcolor="#edf1ed")
+        fig4.update_yaxes(gridcolor="#edf1ed",scaleanchor="x",scaleratio=1)
         st.plotly_chart(fig4,use_container_width=True)
         st.markdown("</div>",unsafe_allow_html=True)
 
